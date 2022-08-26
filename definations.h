@@ -1,18 +1,3 @@
-/*
-* ASCII Art: Real-time ASCII Art Rendering Library.
-* Copyright (C) PixLab. https://pixlab.io/art
-* Version 1.2
-* For information on licensing, redistribution of this file, and for a DISCLAIMER OF ALL WARRANTIES
-* please contact:
-*       support@pixlab.io
-*       contact@pixlab.io
-* or visit:
-*     https://pixlab.io/art
-*/
-/*
- * An Implementation based on the paper:
- * > N. Markus, M. Fratarcangeli, I. S. Pandzic and J. Ahlberg, "Fast Rendering of Image Mosaics and ASCII Art", Computer Graphics Forum, 2015, http://dx.doi.org/10.1111/cgf.12597
- */
 #include<stdint.h>
 #ifndef __ASCIIART_H__
 #define __ASCIIART_H__

@@ -3968,10 +3968,7 @@ stbi_uc **__resample(stbi__jpeg *j, stbi__resample *resmp) {
 		 r = &resmp[i];
 		 int y_bot = r->ystep >= (r->vs>>1);
 		 if(r->ystep>4) break; // bits per channel number
-		 //printf("%d\n", r->ystep);
 		 if(i<=4) { 
-			//printf("%d\n", j->img_comp[i].linebuf==NULL);
-			//
 			 if(j->img_comp[i].linebuf!=NULL && r->line0 !=NULL && r->line1!=NULL) { 
 				 printf("resample\n");
 				 out[k] = r->resample(j->img_comp[i].linebuf,
@@ -4027,7 +4024,7 @@ stbi_uc *__output(stbi__jpeg *r, stbi_uc **u) {
 			out[1] = u[1][j];
 			out[2] = u[2][j];
 			out[3] = 255;
-			out+=r->s->img_y;
+			out+=r->s->img_y; // such magic 
 		}
 		memcpy(output, out, n);
 	}
