@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gcc main.c -I./ -lm -o main && ./main ~/Pictures/macos.jpg
