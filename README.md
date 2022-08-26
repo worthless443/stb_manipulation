@@ -6,8 +6,9 @@ A take on understanding how parsing image files works and organizing them into d
 The main premise is to break down `stbi_load` and its underlying infrastructure that processes the images and returns `stbi_uc*`.
 
 I've thus far wrote things so that it can be used speperately, however the core algorithm is copied and it goes close to working, but is not robust and does only suppoert a specific format of files, aka jpeg but not all jpegs. 
+
 Handling JPEG files
-------
+---------
 
 The heavy work of parsing JEPG files and processing it lies in:
 
@@ -16,12 +17,18 @@ The heavy work of parsing JEPG files and processing it lies in:
 ### `stbi__decode_jpeg_image()`
 
 `stbi__jepg*` is created by decoding bytes into possibly CMYK, YCCK, or RGB format using  `stbi__decode_jpeg_image()`, after that resampling should take place.
-Resampling
-: In the original implemenation, an uninitialized pointer to `stbi_uc` is placed, then it repositions like so, `output +i * j * img_y` and increments by `ctx->img_y` every allocation of the result of previously discussed. Then
+
+__Resampling__:
+In the original implemenation, an uninitialized pointer to `stbi_uc` is placed, then it repositions like so, `output +i * j * img_y` and increments by `ctx->img_y` every allocation of the result of previously discussed. Then
 depending on `n` and image channel size, we resample `out` differently either using `CMYK` or `YCCK` format. Howeer, as of this commit, I have only implemented the simplier RGB.
 
-Resampler
-: Resampling is done depending on `ystep` and `vs` per different instances of `stbi__resample`, and that depending on `img_n` and `n` which is `req_comp ? req_comp : z->s->img_n >= 3 ? 3 : 1;` depending on the parameter `req_comp`.
+
+__Resampler__:
+Resampling is done depending on `ystep` and `vs` per different instances of `stbi__resample`, and that depending on `img_n` and `n` which is `req_comp ? req_comp : z->s->img_n >= 3 ? 3 : 1;` depending on the parameter `req_comp`.
+
+__decode__:
+
+First, Parse the headers and store the values in `stbi__jpeg`, then scan the headers and put value in `stbi__jpeg`, then parse entropy coded data. As long as the `sbti__context` is not EOF, check for `255` and break the loop.
 
 ### Some Additional Notes
 
