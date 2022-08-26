@@ -21,6 +21,8 @@
 extern "C" {
 #endif 
 
+// define this for std_image to load symbols for use in main.c
+
 #if defined (_MSC_VER) || defined (__MINGW32__) ||  defined (__GNUC__) && defined (__declspec)
 #define ART_APIEXPORT	__declspec(dllexport)
 #else

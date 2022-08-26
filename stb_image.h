@@ -3967,21 +3967,42 @@ stbi_uc **__resample(stbi__jpeg *j, stbi__resample *resmp) {
 	while(1) {
 		 r = &resmp[i];
 		 int y_bot = r->ystep >= (r->vs>>1);
-		 if(r->ystep<r->vs) { 
-			 out[k] = r->resample(j->img_comp[i].linebuf,
-                                     y_bot ? r->line1 : r->line0,
-                                     y_bot ? r->line0 : r->line1,
-                                     r->w_lores, r->hs);
-			 k++;
+		 if(r->ystep>4) break; // bits per channel number
+		 //printf("%d\n", r->ystep);
+		 if(i<=4) { 
+			//printf("%d\n", j->img_comp[i].linebuf==NULL);
+			//
+			 if(j->img_comp[i].linebuf!=NULL && r->line0 !=NULL && r->line1!=NULL) { 
+				 printf("resample\n");
+				 out[k] = r->resample(j->img_comp[i].linebuf,
+					     y_bot ? r->line1 : r->line0,
+					     y_bot ? r->line0 : r->line1,
+					     r->w_lores, r->hs);
+			 	k++;
+			 }
+			 else if(j->img_comp[i].linebuf !=NULL) { 
+				 printf("linebuf\n");
+				 stbi__resample *rr = r - 2;
+				 if(rr->line1!=NULL && rr->line0 !=NULL)  {
+				 out[k] = rr->resample(j->img_comp[i].linebuf,
+					     y_bot ? rr->line1 : rr->line0,
+					     y_bot ? rr->line0 : rr->line1,
+					     rr->w_lores, rr->hs);
+				  k++;
+				 }
+				 else printf("error: is null\n");
+			 }
 		 }
 		 else if(r->ystep>r->vs) {
-			 r->ystep=0;	
+			 (++r)->ystep=0;	
 		 }
-		 if(r->ystep==r->vs) { 
-			 break;
+		 else if(r->ystep==r->vs) { 
+			 (++r)->ystep = (--r)->ystep + (++r)->ystep + 1;
 		 }
+		 if(i>20) break;
 		 i++;
 	}
+
 	stbi_uc **output  = stbi__malloc(sizeof(out));
 	memcpy(output,out, sizeof(out));
 	return output;
@@ -4004,7 +4025,8 @@ stbi_uc *__output(stbi__jpeg *r, stbi_uc **u) {
 		for(int j=0;j<r->s->img_x-100;j++) {
 			out[0] = u[0][j];
 			out[1] = u[1][j];
-			out[2] = 255;
+			out[2] = u[2][j];
+			out[3] = 255;
 			out+=r->s->img_y;
 		}
 		memcpy(output, out, n);
@@ -4025,12 +4047,12 @@ const char *stbi_parse(const char *fname) {
 	///const char *out = stbi__jpeg_load(&ctx, &w,&h,&cmp,1, &ri);
 	stbi__resample *svec = get_resampling(&ctx,j);
 	stbi_uc **out = __resample(j, svec);
-	if(out[0] == NULL && out[1]) { 
+	if(out[0] == NULL && out[1] && out[2]==NULL) { 
 		printf("is null\n");
 		return NULL;
 	}
 	
-	//stbi_uc uc = out[2][2];
+	
 	stbi_uc  *output = __output(j,out);
 	for(int i=0, k=0;i<800 && output[i]!=0;i++,k++) {
 		printf("%d ", output[i]);
