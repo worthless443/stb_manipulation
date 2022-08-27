@@ -19,18 +19,21 @@ The heavy work of parsing JEPG files and processing it lies in:
 `stbi__jepg*` is created by decoding bytes into possibly CMYK, YCCK, or RGB format using  `stbi__decode_jpeg_image()`, after that resampling should take place.
 
 __Resampling__:
+
 In the original implemenation, an uninitialized pointer to `stbi_uc` is placed, then it repositions like so, `output +i * j * img_y` and increments by `ctx->img_y` every allocation of the result of previously discussed. Then
 depending on `n` and image channel size, we resample `out` differently either using `CMYK` or `YCCK` format. Howeer, as of this commit, I have only implemented the simplier RGB.
 
 
 __Resampler__:
+
 Resampling is done depending on `ystep` and `vs` per different instances of `stbi__resample`, and that depending on `img_n` and `n` which is `req_comp ? req_comp : z->s->img_n >= 3 ? 3 : 1;` depending on the parameter `req_comp`.
 
 __decode__:
 
 First, Parse the headers and store the values in `stbi__jpeg`, then scan the headers and put value in `stbi__jpeg`, then parse entropy coded data. As long as the `sbti__context` is not EOF, check for `255` and break the loop.
 
-### Some Additional Notes
+Depends on the count of `stbi__process_marker()` passed through `stbi__SOF()`
+### Some Additional Notes 
 
 ### Issues 
 
