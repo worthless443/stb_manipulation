@@ -3237,12 +3237,14 @@ static int stbi__process_frame_header(stbi__jpeg *z, int scan)
 
 #define stbi__SOF_progressive(x)   ((x) == 0xc2)
 
+//bookmark1
 static int stbi__decode_jpeg_header(stbi__jpeg *z, int scan)
 {
    int m;
    z->jfif = 0;
    z->app14_color_transform = -1; // valid values are 0,1,2
    z->marker = STBI__MARKER_none; // initialize cached marker to empty
+
    m = stbi__get_marker(z);
    if (!stbi__SOI(m)) return stbi__err("no SOI","Corrupt JPEG");
    if (scan == STBI__SCAN_type) return 1;
@@ -3265,7 +3267,7 @@ static int stbi__decode_jpeg_header(stbi__jpeg *z, int scan)
 static int stbi__decode_jpeg_image(stbi__jpeg *j)
 {
    int m;
-   for (m = 0; m < 4; m++) {
+   for (m = 0; m <= 3; m++) {
       j->img_comp[m].raw_data = NULL;
       j->img_comp[m].raw_coeff = NULL;
    }
@@ -4031,40 +4033,101 @@ stbi_uc *__output(stbi__jpeg *r, stbi_uc **u) {
 
 	return output;
 }
+typedef struct {
+	stbi__jpeg *j;
+	int count_sof, count_eoi, count_soi;
+} stbi__count_ref;
 
+static void setup__j(stbi__jpeg *j, stbi__context *ctx) {
+	j->s = ctx;
+	stbi__setup_jpeg(j);
+	int m;
+	for(m=0;m<=3;m++) {
+		j->img_comp[m].raw_data = NULL;
+		j->img_comp[m].raw_coeff = NULL;
+	}
+   	j->restart_interval = 1;
+   	j->jfif = 0;
+   	j->app14_color_transform = -1; // valid values are 0,1,2
+   	j->marker = STBI__MARKER_none; // initialize cached marker to empty
+}
+
+static int jpeg__getc(stbi__context *ctx, stbi__count_ref *ref) {
+	int m, count_sof=0, count_eoi=0,count_soi=0;
+	stbi__jpeg *j = stbi__malloc(sizeof(stbi__jpeg));
+	setup__j(j,ctx);
+   	m = stbi__get_marker(j);
+	while(1) {
+		if(!stbi__SOF(m))  {
+			stbi__process_marker(j,m); //err check on this, probally errors out!
+			m = stbi__get_marker(j);
+			count_sof++;
+		}
+		else if(!stbi__EOI(m)) {
+			stbi__process_marker(j,m);
+			m = stbi__get_marker(j);
+			count_eoi++;
+		}
+		else if(!stbi__SOI(m)) {
+			stbi__process_marker(j,m);
+			m = stbi__get_marker(j);
+			count_soi++;
+		}
+		if(m==0) break;
+	}
+	ref->count_soi = count_soi;
+	ref->count_sof = count_sof;
+	ref->count_eoi = count_eoi;
+	return 1;
+}
 const char *stbi_parse(const char *fname) {
-	stbi__context ctx;
+	//int count = jpeg__get_count();
+	//return NULL;
+	stbi__context ctx, ctx1;
 	stbi__result_info ri;
+	stbi__count_ref cref;
 	stbi__jpeg *j = stbi__malloc(sizeof(stbi__jpeg));
 	jpeg_mapper *mapper = stbi__malloc(sizeof(jpeg_mapper)*10);
 	int w=100,h=100,cmp=2;
 	FILE *f = stbi__fopen(fname, "rb");
+	stbi__start_file(&ctx1,f);
+	setup_result(&ri);
+
+	//const char *out = stbi__jpeg_load(&ctx, &w,&h,&cmp,1, &ri);
+	
+	jpeg__getc(&ctx1,&cref);
+
+	printf("%d\n", cref.count_eoi);
+	 
+	return NULL;
+
 	stbi__start_file(&ctx,f);
 	setup_result(&ri);
-	///const char *out = stbi__jpeg_load(&ctx, &w,&h,&cmp,1, &ri);
+//
 	stbi__resample *svec = get_resampling(&ctx,j);
+
 	stbi_uc **out = __resample(j, svec);
+
 	if(out[0] == NULL && out[1] && out[2]==NULL) { 
 		printf("is null\n");
 		return NULL;
 	}
 	
-	
 	stbi_uc  *output = __output(j,out);
-	for(int i=0, k=0;i<800 && output[i]!=0;i++,k++) {
-		printf("%d ", output[i]);
-		if(k==10) {
-			printf("\n");
-			k=0;
-		}
-	}
+
+//	for(int i=0, k=0;i<800 && output[i]!=0;i++,k++) {
+//		printf("%d ", output[i]);
+//		if(k==10) {
+//			printf("\n");
+//			k=0;
+//		}
+//	}
 	//map_jpeg(svec, &ctx, mapper);
 	////print_mapper(mapper);
 	//printf("%d\n", mapper.hs_mtl);
 	return NULL;
 }
 
-STBIDEF void test_stbi() {}
 
 static int stbi__jpeg_test(stbi__context *s)
 {
