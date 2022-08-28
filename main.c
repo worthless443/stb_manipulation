@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <utils.h>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+//#define STB_IMAGE_IMPLEMENTATION
+//#include "stb_image.h"
 
 void getstbi(const char *fname) {
 	int arr[101];

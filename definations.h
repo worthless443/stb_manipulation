@@ -25,7 +25,10 @@ typedef struct count_ {
 	int tree_i;
 } count_t;
 
+
 void getstbi(const char *fname);
+const char *stbi_parse(const char *fname);
+
 #endif /* ART_ENABLE_STB_IMAGE */
 
 #ifdef __cplusplus
