@@ -208,6 +208,7 @@ const char *stbi_parse(const char *fname) {
 	FILE *f = stbi__fopen(fname, "rb");
 	//const char *out = stbi__jpeg_load(&ctx, &w,&h,&cmp,1, &ri);
 	jpeg__getc(f,&cref);
+	return NULL;
 	printf("%d\n", cref.count_eoi);
 
 	stbi__start_file(&ctx,f);
