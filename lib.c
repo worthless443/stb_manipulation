@@ -1,6 +1,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "logger.h"
 
+// TODO add a struct that enables use of doing pretty much anything done here right now
 stbi__resample *get_resampling(stbi__context *ctx, stbi__jpeg *j) {
 	j->s = ctx;
 	int decode_n;
@@ -148,7 +150,7 @@ static void setup__j(stbi__jpeg *j, stbi__context *ctx) {
    	j->marker = STBI__MARKER_none; // initialize cached marker to empty
 }
 
-static int jpeg__getc(FILE *f, stbi__count_ref *ref) {
+static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 	stbi__context ctx;	
 	int m, count_sof=0, count_eoi=0,count_soi=0;
 	stbi__jpeg *j = stbi__malloc(sizeof(stbi__jpeg));
@@ -159,7 +161,8 @@ static int jpeg__getc(FILE *f, stbi__count_ref *ref) {
    	m = stbi__get_marker(j);
 	while(1) {
 		if(!stbi__SOF(m))  {
-			stbi__process_marker(j,m); //err check on this, probally errors out!
+			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
+			if(!ret) my_log(fp,ret,0);
 			m = stbi__get_marker(j);
 			count_sof++;
 		}
@@ -171,7 +174,8 @@ static int jpeg__getc(FILE *f, stbi__count_ref *ref) {
 	setup__j(j,&ctx);
 	while(1) {
 		if(!stbi__SOI(m))  {
-			stbi__process_marker(j,m); //err check on this, probally errors out!
+			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
+			if(!ret) my_log(fp,ret,0);
 			m = stbi__get_marker(j);
 			count_soi++;
 		}
@@ -183,7 +187,8 @@ static int jpeg__getc(FILE *f, stbi__count_ref *ref) {
 	setup__j(j,&ctx);
 	while(1) {
 		if(!stbi__EOI(m))  {
-			stbi__process_marker(j,m); //err check on this, probally errors out!
+			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
+			if(!ret) my_log(fp,ret,0);
 			m = stbi__get_marker(j);
 			count_eoi++;
 		}
@@ -206,16 +211,16 @@ const char *stbi_parse(const char *fname) {
 	jpeg_mapper *mapper = stbi__malloc(sizeof(jpeg_mapper)*10);
 	int w=100,h=100,cmp=2;
 	FILE *f = stbi__fopen(fname, "rb");
+	FILE *fp = logger_start_f("test.log");
 	//const char *out = stbi__jpeg_load(&ctx, &w,&h,&cmp,1, &ri);
-	jpeg__getc(f,&cref);
+	jpeg__getc(f,fp,&cref);
 	return NULL;
-	printf("%d\n", cref.count_eoi);
-
 	stbi__start_file(&ctx,f);
 	setup_result(&ri);
 
 	stbi__resample *svec = get_resampling(&ctx,j);
 
+	return NULL;
 
 	stbi_uc **out = __resample(j, svec);
 
