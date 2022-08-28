@@ -153,6 +153,7 @@ static void setup__j(stbi__jpeg *j, stbi__context *ctx) {
 static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 	stbi__context ctx;	
 	int m, count_sof=0, count_eoi=0,count_soi=0;
+	int err_sof=0,err_eoi=0,err_soi=0;
 	stbi__jpeg *j = stbi__malloc(sizeof(stbi__jpeg));
 
 	stbi__start_file(&ctx, f);
@@ -162,7 +163,7 @@ static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 	while(1) {
 		if(!stbi__SOF(m))  {
 			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
-			if(!ret) my_log(fp,ret,0);
+			if(!ret) err_sof++;
 			m = stbi__get_marker(j);
 			count_sof++;
 		}
@@ -175,7 +176,7 @@ static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 	while(1) {
 		if(!stbi__SOI(m))  {
 			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
-			if(!ret) my_log(fp,ret,0);
+			if(!ret) err_soi++;
 			m = stbi__get_marker(j);
 			count_soi++;
 		}
@@ -188,7 +189,7 @@ static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 	while(1) {
 		if(!stbi__EOI(m))  {
 			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
-			if(!ret) my_log(fp,ret,0);
+			if(!ret) err_eoi++;
 			m = stbi__get_marker(j);
 			count_eoi++;
 		}
@@ -197,6 +198,10 @@ static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 	ref->count_soi = count_soi;
 	ref->count_sof = count_sof;
 	ref->count_eoi = count_eoi;
+
+	if(err_soi) my_log(fp, err_soi, 0);
+	if(err_eoi) my_log(fp, err_eoi, 0);
+	if(err_sof) my_log(fp, err_sof, 0);
 	fseek(f,0,SEEK_SET);
 	return 1;
 }
@@ -214,6 +219,7 @@ const char *stbi_parse(const char *fname) {
 	FILE *fp = logger_start_f("test.log");
 	//const char *out = stbi__jpeg_load(&ctx, &w,&h,&cmp,1, &ri);
 	jpeg__getc(f,fp,&cref);
+	my_log(fp,0,0);
 	return NULL;
 	stbi__start_file(&ctx,f);
 	setup_result(&ri);
