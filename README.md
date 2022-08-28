@@ -38,3 +38,7 @@ Depends on the count of `stbi__process_marker()` passed through `stbi__SOF()`
 ### Issues 
 
 Conditions in `__resample()` is wrong, thus produces incomplete samples of `stbi_uc*`. Only its size is 2 where it should have been 3 [fixed]
+
+### TODO 
+
+Implement logger
