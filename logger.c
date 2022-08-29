@@ -49,11 +49,11 @@ static size_t get_size_ptr(const char *ptr) {
 	return i;
 }
 static const char *_bt() {
-	char *buf[100];
+	void *buf[100];
 	char **strings;
 	int nptrs = backtrace((void**)buf, 100);
 	strings = backtrace_symbols((void**)buf, nptrs);
-	int offset = nptrs - 5;
+	int offset = nptrs - 6;
 	const char *ret = strings[offset];
 	free(strings);
 	return ret;
@@ -89,7 +89,7 @@ void log_clean(const char *fname) {
 //	//printf("%ld\n", get_size_ptr(data));
 //	//my_log(f, "err: got 1", 0);
 //	//printf("%ld\n", sizeof(unsigned long int));
-//	my_log(f, 223, 1);
-//	my_log(f, 2230000, 1);
+//	my_log(f, 223, 0);
+//	my_log(f, 2230000, 0);
 //	//fread(data, 1,4,f);
 //}
