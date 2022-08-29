@@ -219,13 +219,11 @@ const char *stbi_parse(const char *fname) {
 	FILE *fp = logger_start_f("test.log");
 	//const char *out = stbi__jpeg_load(&ctx, &w,&h,&cmp,1, &ri);
 	jpeg__getc(f,fp,&cref);
-	return NULL;
 	stbi__start_file(&ctx,f);
 	setup_result(&ri);
 
 	stbi__resample *svec = get_resampling(&ctx,j);
 
-	return NULL;
 
 	stbi_uc **out = __resample(j, svec);
 
