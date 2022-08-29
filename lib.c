@@ -165,7 +165,7 @@ static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
 			if(!ret) err_sof++;
 			m = stbi__get_marker(j);
-			count_sof++;
+			if(ret) count_sof++;
 		}
 		else break;
 	}
@@ -178,7 +178,7 @@ static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
 			if(!ret) err_soi++;
 			m = stbi__get_marker(j);
-			count_soi++;
+			if(ret) count_soi++;
 		}
 		else break;
 	}
@@ -191,7 +191,7 @@ static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
 			if(!ret) err_eoi++;
 			m = stbi__get_marker(j);
-			count_eoi++;
+			if(ret) count_eoi++;
 		}
 		else break;
 	}
