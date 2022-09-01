@@ -25,7 +25,6 @@ typedef struct count_ {
 	int tree_i;
 } count_t;
 
-
 void getstbi(const char *fname);
 const char *stbi_parse(const char *fname);
 
@@ -34,3 +33,4 @@ const char *stbi_parse(const char *fname);
 #ifdef __cplusplus
 }
 #endif 
+

@@ -1,8 +1,16 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "logger.h"
+#include "definations.h"
 
 // TODO add a struct that enables use of doing pretty much anything done here right now
+
+typedef struct {
+	int target;
+	FILE *f;
+	stbi__jpeg *j;
+} uni__jpeg;
+
 stbi__resample *get_resampling(stbi__context *ctx, stbi__jpeg *j) {
 	j->s = ctx;
 	int decode_n;
@@ -150,6 +158,11 @@ static void setup__j(stbi__jpeg *j, stbi__context *ctx) {
    	j->marker = STBI__MARKER_none; // initialize cached marker to empty
 }
 
+
+static void uni__jpeg_seek(uni__jpeg *j) {
+	fseek(j->f,0,SEEK_SET);
+	stbi__start_file(j->j->s, j->f);
+}
 static int jpeg__getc(FILE *f, stbi__count_ref *ref, error_def *err) {
 	stbi__context ctx;	
 	int m, count_sof=0, count_eoi=0,count_soi=0;
@@ -185,6 +198,7 @@ static int jpeg__getc(FILE *f, stbi__count_ref *ref, error_def *err) {
 
 	fseek(f,0,SEEK_SET);
 	stbi__start_file(&ctx, f);
+
 	setup__j(j,&ctx);
 	while(1) {
 		if(!stbi__EOI(m))  {
@@ -205,6 +219,57 @@ static int jpeg__getc(FILE *f, stbi__count_ref *ref, error_def *err) {
 	fseek(f,0,SEEK_SET);
 	return 1;
 }
+
+static void print_matrix(uni__jpeg *jpg) {
+	for(int i=0;i<=3;i++)  {
+		for(int j=0;j<64;j++)
+			printf("%d ", jpg->j->dequant[i][j]);
+
+		printf("\n");
+	}
+}
+
+static int process_make_marker(uni__jpeg *j, int m) {
+	int L = stbi__get16be(j->j->s);
+	j->target = L;
+	switch(m) {
+	case 0:
+		uni__jpeg_seek(j);
+		L = stbi__get16be(j->j->s);
+		while(L>1) {
+			int q = stbi__get8(j->j->s);
+			int p = q >> 15, t = q & 15, sex = (p!=0);
+			if(t<=3) 
+				for(int i=0;i<64;i++) j->j->dequant[t][stbi__jpeg_dezigzag[i]] = (stbi__uint16)(sex ? stbi__get16be(j->j->s) : stbi__get8(j->j->s));
+			
+			// * 
+			m++;
+			L-= sex ? 129 : 65;
+		}
+	case 65:
+		 return m;
+	}
+
+	if(m > 0 && m < 1<<12) {
+		int L = stbi__get8(j->j->s);
+		while(L>0) {
+			m++;
+			L-=65;
+		}
+		return m;
+	}
+	
+	return 0;
+}
+static int calculate_times(uni__jpeg *u) {
+	int m = process_make_marker(u,0), i=0;
+	while((m = process_make_marker(u,m))<1<<12) {
+		//print_matrix(u); //matrices are the same
+		i++;
+	}
+	return i;
+}
+
 // non static
 const char *stbi_parse(const char *fname) {
 	//int count = jpeg__get_count();
@@ -213,13 +278,13 @@ const char *stbi_parse(const char *fname) {
 	stbi__result_info ri;
 	stbi__count_ref cref;
 	stbi__jpeg *j = stbi__malloc(sizeof(stbi__jpeg));
-
+	uni__jpeg u;
 	error_def err = {0,1}; // write to file {0,0} to stdout
-
 	jpeg_mapper *mapper = stbi__malloc(sizeof(jpeg_mapper)*10);
 	int w=100,h=100,cmp=2;
 	FILE *f = stbi__fopen(fname, "rb");
-	
+	u.j = j;
+	u.f = f;
 	logger_start_f(&err, "test.log");
 	jpeg__getc(f,&cref,&err);
 
@@ -228,8 +293,13 @@ const char *stbi_parse(const char *fname) {
 
 	stbi__resample *svec = get_resampling(&ctx,j);
 
-
 	stbi_uc **out = __resample(j, svec);
+
+	int m = calculate_times(&u)	;
+
+	printf("%d\n", m);
+
+	return NULL;
 
 	if(out[0] == NULL && out[1] && out[2]==NULL) { 
 		printf("is null\n");
