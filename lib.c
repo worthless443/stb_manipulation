@@ -41,6 +41,8 @@ stbi__resample *get_resampling(stbi__context *ctx, stbi__jpeg *j) {
          else if (r->hs == 2 && r->vs == 1) r->resample = stbi__resample_row_h_2;
          else if (r->hs == 2 && r->vs == 2) r->resample = j->resample_row_hv_2_kernel;
          else                               r->resample = stbi__resample_row_generic;
+
+         //r->resample = stbi__resample_row_generic;
  
 	 int prev,curr;
 	 if(i>0 && i < decode_n -1) {
@@ -298,8 +300,6 @@ const char *stbi_parse(const char *fname) {
 	int m = calculate_times(&u)	;
 
 	printf("%d\n", m);
-
-	return NULL;
 
 	if(out[0] == NULL && out[1] && out[2]==NULL) { 
 		printf("is null\n");
