@@ -1,4 +1,4 @@
-OBJS=logger.o lib.o
+OBJS=logger.o extension.o
 MAIN=main
 
 all : $(OBJS) $(MAIN) 

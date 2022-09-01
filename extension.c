@@ -9,6 +9,7 @@ typedef struct {
 	int target;
 	FILE *f;
 	stbi__jpeg *j;
+	error_def  *err;
 } uni__jpeg;
 
 stbi__resample *get_resampling(stbi__context *ctx, stbi__jpeg *j) {
@@ -224,11 +225,24 @@ static int jpeg__getc(FILE *f, stbi__count_ref *ref, error_def *err) {
 
 static void print_matrix(uni__jpeg *jpg) {
 	for(int i=0;i<=3;i++)  {
-		for(int j=0;j<64;j++)
+		for(int j=0;j<64;j++) {
 			printf("%d ", jpg->j->dequant[i][j]);
+			if(jpg->j->dequant[i][j]==0xc2) mylog(jpg->err, j);
+		}
 
-		printf("\n");
+		printf("\n\n");
 	}
+}
+
+static int calculate_which(uni__jpeg *jpg) {
+	int Ls = stbi__get16be(jpg->j->s);
+	if(!Ls) return 0;
+	int id = stbi__get8(jpg->j->s), which;
+	int wh =0;
+	for(which=0;which<=jpg->j->s->img_n;which++) {
+		if (jpg->j->img_comp[which].id == id) wh++;
+	}
+	return wh;
 }
 
 static int process_make_marker(uni__jpeg *j, int m) {
@@ -244,7 +258,6 @@ static int process_make_marker(uni__jpeg *j, int m) {
 			if(t<=3) 
 				for(int i=0;i<64;i++) j->j->dequant[t][stbi__jpeg_dezigzag[i]] = (stbi__uint16)(sex ? stbi__get16be(j->j->s) : stbi__get8(j->j->s));
 			
-			// * 
 			m++;
 			L-= sex ? 129 : 65;
 		}
@@ -266,7 +279,7 @@ static int process_make_marker(uni__jpeg *j, int m) {
 static int calculate_times(uni__jpeg *u) {
 	int m = process_make_marker(u,0), i=0;
 	while((m = process_make_marker(u,m))<1<<12) {
-		//print_matrix(u); //matrices are the same
+		print_matrix(u); //matrices are the same
 		i++;
 	}
 	return i;
@@ -288,6 +301,9 @@ const char *stbi_parse(const char *fname) {
 	u.j = j;
 	u.f = f;
 	logger_start_f(&err, "test.log");
+
+	u.err = &err;
+
 	jpeg__getc(f,&cref,&err);
 
 	stbi__start_file(&ctx,f);
@@ -299,8 +315,10 @@ const char *stbi_parse(const char *fname) {
 
 	int m = calculate_times(&u)	;
 
-	printf("%d\n", m);
+	int wh = calculate_which(&u);
+	printf("%d\n", wh);
 
+	return NULL;
 	if(out[0] == NULL && out[1] && out[2]==NULL) { 
 		printf("is null\n");
 		return NULL;

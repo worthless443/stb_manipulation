@@ -76,11 +76,11 @@ void my_log(error_def *err, int ret) {
 	char dig[64];
 	sprintf(dig, "%d", ret);
 	int size_d = get_size_ptr(dig);
-	int size = sizeof(format)/sizeof(char) + get_size_ptr(_bt()) + size_d;
+	int size = get_size_ptr(err->funcname) + get_size_ptr(format) + get_size_ptr(_bt());
 	char mess[size];
 	sprintf(mess,format,err->funcname, _bt(), ret);
 	if(err->write)
-		fwrite(mess, 1, size + 2, err->f);
+		fwrite(mess, 1, size, err->f);
 	else
 	   	printf("%s\n", mess);
 }
