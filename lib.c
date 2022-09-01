@@ -165,7 +165,7 @@ static int jpeg__getc(FILE *f, stbi__count_ref *ref, error_def *err) {
 			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
 			if(!ret) err_sof++;
 			m = stbi__get_marker(j);
-			count_sof++;
+			if(ret) count_sof++;
 		}
 		else break;
 	}
@@ -178,7 +178,7 @@ static int jpeg__getc(FILE *f, stbi__count_ref *ref, error_def *err) {
 			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
 			if(!ret) err_soi++;
 			m = stbi__get_marker(j);
-			count_soi++;
+			if(ret) count_soi++;
 		}
 		else break;
 	}
@@ -191,7 +191,7 @@ static int jpeg__getc(FILE *f, stbi__count_ref *ref, error_def *err) {
 			int ret = stbi__process_marker(j,m); //err check on this, probally errors out!
 			if(!ret) err_eoi++;
 			m = stbi__get_marker(j);
-			count_eoi++;
+			if(ret) count_eoi++;
 		}
 		else break;
 	}
@@ -219,16 +219,11 @@ const char *stbi_parse(const char *fname) {
 	jpeg_mapper *mapper = stbi__malloc(sizeof(jpeg_mapper)*10);
 	int w=100,h=100,cmp=2;
 	FILE *f = stbi__fopen(fname, "rb");
-	logger_start_f(&err,"test.log");
-	jpeg__getc(f,&cref, &err);
-	mylog(&err, 10002344);
-	return NULL;
 	stbi__start_file(&ctx,f);
 	setup_result(&ri);
 
 	stbi__resample *svec = get_resampling(&ctx,j);
 
-	return NULL;
 
 	stbi_uc **out = __resample(j, svec);
 
