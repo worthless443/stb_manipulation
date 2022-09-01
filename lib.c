@@ -150,7 +150,7 @@ static void setup__j(stbi__jpeg *j, stbi__context *ctx) {
    	j->marker = STBI__MARKER_none; // initialize cached marker to empty
 }
 
-static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
+static int jpeg__getc(FILE *f, stbi__count_ref *ref, error_def *err) {
 	stbi__context ctx;	
 	int m, count_sof=0, count_eoi=0,count_soi=0;
 	int err_sof=0,err_eoi=0,err_soi=0;
@@ -199,9 +199,9 @@ static int jpeg__getc(FILE *f,FILE *fp, stbi__count_ref *ref) {
 	ref->count_sof = count_sof;
 	ref->count_eoi = count_eoi;
 
-	if(err_soi) my_log(fp, err_soi, 0);
-	if(err_eoi) my_log(fp, err_eoi, 0);
-	if(err_sof) my_log(fp, err_sof, 0);
+	if(err_soi) mylog(err, err_soi);
+	if(err_eoi) mylog(err, err_eoi);
+	if(err_sof) mylog(err, err_sof);
 	fseek(f,0,SEEK_SET);
 	return 1;
 }
@@ -213,13 +213,15 @@ const char *stbi_parse(const char *fname) {
 	stbi__result_info ri;
 	stbi__count_ref cref;
 	stbi__jpeg *j = stbi__malloc(sizeof(stbi__jpeg));
+
+	error_def err = {0,1}; // write to file {0,0} to stdout
+
 	jpeg_mapper *mapper = stbi__malloc(sizeof(jpeg_mapper)*10);
 	int w=100,h=100,cmp=2;
 	FILE *f = stbi__fopen(fname, "rb");
-	FILE *fp = logger_start_f("test.log");
-	//const char *out = stbi__jpeg_load(&ctx, &w,&h,&cmp,1, &ri);
-	jpeg__getc(f,fp,&cref);
-	my_log(fp,100,0);
+	logger_start_f(&err,"test.log");
+	jpeg__getc(f,&cref, &err);
+	mylog(&err, 10002344);
 	return NULL;
 	stbi__start_file(&ctx,f);
 	setup_result(&ri);

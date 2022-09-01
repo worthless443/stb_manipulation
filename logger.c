@@ -5,6 +5,8 @@
 #include<execinfo.h>
 #include<sys/mman.h>
 
+
+//#include<logger.h>
 //#include<logger.h>
 
 #define FILE_ADDR 0x400000 //generic addr
@@ -13,6 +15,13 @@
 static void fcopy(void *ptr1, void *ptr2) {
 	
 }
+
+typedef struct {
+	int ret, write;
+	FILE *f;
+	const char *funcname;
+} error_def;
+
 // c source 
 static void setup_high_b_low_b(unsigned long int *hib, unsigned long int *lowb) {
   *hib = 0x80808080L;
@@ -53,25 +62,25 @@ static const char *_bt() {
 	char **strings;
 	int nptrs = backtrace((void**)buf, 100);
 	strings = backtrace_symbols((void**)buf, nptrs);
-	int offset = nptrs - 6;
+	int offset = nptrs - 7;
 	const char *ret = strings[offset];
 	free(strings);
 	return ret;
 }
 
-FILE *logger_start_f(const char *fname) {
-	return fopen(fname, "w");
+void logger_start_f(error_def *err, const char *fname) {
+	err->f =  fopen(fname, "w");
 }
-void my_log(FILE *f, int ret, int write) {
-	char format[] = "\nat %s, something returned wtih %d\n";
+void my_log(error_def *err, int ret) {
+	char format[] = "\n%s() at %s, something returned wtih %d\n";
 	char dig[64];
 	sprintf(dig, "%d", ret);
 	int size_d = get_size_ptr(dig);
 	int size = sizeof(format)/sizeof(char) + get_size_ptr(_bt()) + size_d;
 	char mess[size];
-	sprintf(mess,format, _bt(), ret);
-	if(write)
-		fwrite(mess, 1, size, f);
+	sprintf(mess,format,err->funcname, _bt(), ret);
+	if(err->write)
+		fwrite(mess, 1, size + 2, err->f);
 	else
 	   	printf("%s\n", mess);
 }
@@ -80,16 +89,25 @@ void log_clean(const char *fname) {
 	fwrite("", 1,1,f);
 	close(f->_fileno);
 }
-//int main() {
-//	FILE *f = logger_start_f("fucker");
-//	//FILE *f = (FILE*)FILE_ADDR;
-//	//printf("%d", ((FILE*)FILE_ADDR)->_fileno);
-//	//char *data = malloc(4*4);
-//	//memcpy(data,  "fuckerr", sizeof("fucker"));
-//	//printf("%ld\n", get_size_ptr(data));
-//	//my_log(f, "err: got 1", 0);
-//	//printf("%ld\n", sizeof(unsigned long int));
-//	my_log(f, 223, 0);
-//	my_log(f, 2230000, 0);
-//	//fread(data, 1,4,f);
-//}
+
+void a(error_def *err) {
+	my_log(err, 100);
+	
+}
+#ifdef _test_main 
+int main() {
+	error_def err; 
+	logger_start_f(&err, "nigger");
+	err.write = 1;
+	//FILE *f = (FILE*)FILE_ADDR;
+	//printf("%d", ((FILE*)FILE_ADDR)->_fileno);
+	//char *data = malloc(4*4);
+	//memcpy(data,  "fuckerr", sizeof("fucker"));
+	//printf("%ld\n", get_size_ptr(data));
+	//my_log(f, "err: got 1", 0);
+	//printf("%ld\n", sizeof(unsigned long int));
+	mylog(&err, 1000);
+	a(&err);
+	//fread(data, 1,4,f);
+}
+#endif 
