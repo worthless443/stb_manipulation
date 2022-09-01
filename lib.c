@@ -219,6 +219,10 @@ const char *stbi_parse(const char *fname) {
 	jpeg_mapper *mapper = stbi__malloc(sizeof(jpeg_mapper)*10);
 	int w=100,h=100,cmp=2;
 	FILE *f = stbi__fopen(fname, "rb");
+
+	logger_start_f(&err, "test.log");
+	jpeg__getc(f,&cref,&err);
+
 	stbi__start_file(&ctx,f);
 	setup_result(&ri);
 

@@ -19,7 +19,6 @@ void my_log_(error_def *err,int ret, const char *name) {
 	err->funcname = name;
 	my_log(err, ret);
 }
-
 //#define my_log(err, ret) my_log_(err,ret, __func__) 
 //#define my_log(err,ret) my_log_(err,ret,__func__)
 #define mylog(err,ret) my_log_(err,ret, __func__)
