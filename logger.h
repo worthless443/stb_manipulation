@@ -20,6 +20,12 @@ void my_log_(error_def *err,int ret, const char *name) {
 	my_log(err, ret);
 }
 
+int logger_start(const char *fname);
+int err_log(const char*funcname, int ret);
+void logger_flush();
+
+#define errlog(ret) err_log(__func__, ret)
+
 //#define my_log(err, ret) my_log_(err,ret, __func__) 
 //#define my_log(err,ret) my_log_(err,ret,__func__)
 #define mylog(err,ret) my_log_(err,ret, __func__)

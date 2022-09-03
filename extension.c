@@ -297,6 +297,10 @@ const char *stbi_parse(const char *fname) {
 	error_def err = {0,1}; // write to file {0,0} to stdout
 	jpeg_mapper *mapper = stbi__malloc(sizeof(jpeg_mapper)*10);
 	int w=100,h=100,cmp=2;
+	logger_start("fuck.log");
+	errlog(10);
+	logger_flush();
+	return NULL;
 	FILE *f = stbi__fopen(fname, "rb");
 	u.j = j;
 	u.f = f;

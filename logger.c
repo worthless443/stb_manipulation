@@ -5,15 +5,10 @@
 #include<execinfo.h>
 #include<sys/mman.h>
 
-
-//#include<logger.h>
-//#include<logger.h>
-
-#define FILE_ADDR 0x400000 //generic addr
+#define GLOBAL_FILE 0x400000 //generic addr
 			   //
 			   //
 static void fcopy(void *ptr1, void *ptr2) {
-	
 }
 
 typedef struct {
@@ -68,9 +63,34 @@ static const char *_bt() {
 	return ret;
 }
 
+
+int logger_start(const char *fname) {
+	void *fp = mmap((void*)GLOBAL_FILE, sizeof(FILE), PROT_READ|PROT_WRITE, MAP_ANON|MAP_PRIVATE,0,0);
+  	FILE *f = fopen(fname, "w");
+  	if(fp!=(void*)GLOBAL_FILE || fp == MAP_FAILED) return 0;
+  	memcpy(fp, f, sizeof(FILE)+16);
+	return 1;
+}
+
+int err_log(const char *funcname, int ret) {
+	char format[] = "\n%s() at %s, something returned wtih %d\n";
+	char dig[64];
+	sprintf(dig, "%d", ret);
+	int size_d = get_size_ptr(dig);
+	int size = get_size_ptr(funcname) + get_size_ptr(format) + get_size_ptr(_bt());
+	char mess[size];
+	sprintf(mess,format,funcname, _bt(), ret);
+	FILE *f = (FILE*)GLOBAL_FILE;
+	if(!fwrite(mess,1, size, f)) return 0;
+	return 1;
+}
+void logger_flush() {
+	fflush((FILE*)GLOBAL_FILE);
+}
 void logger_start_f(error_def *err, const char *fname) {
 	err->f =  fopen(fname, "w");
 }
+
 void my_log(error_def *err, int ret) {
 	char format[] = "\n%s() at %s, something returned wtih %d\n";
 	char dig[64];
@@ -78,6 +98,7 @@ void my_log(error_def *err, int ret) {
 	int size_d = get_size_ptr(dig);
 	int size = get_size_ptr(err->funcname) + get_size_ptr(format) + get_size_ptr(_bt());
 	char mess[size];
+
 	sprintf(mess,format,err->funcname, _bt(), ret);
 	if(err->write)
 		fwrite(mess, 1, size, err->f);
@@ -94,7 +115,7 @@ void a(error_def *err) {
 	my_log(err, 100);
 	
 }
-#ifdef _test_main 
+#ifdef __main__   // pythonic practice
 int main() {
 	error_def err; 
 	logger_start_f(&err, "nigger");
